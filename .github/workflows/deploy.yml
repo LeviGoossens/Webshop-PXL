@@ -1,6 +1,8 @@
 name: deploy
 
 on:
+  workflow_dispatch: 
+    
   workflow_run:
     workflows: [build]
     types: [completed]
@@ -19,7 +21,6 @@ jobs:
     timeout-minutes: 20
     environment: production
     env:
-      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
       DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
       NAS_HOST: ${{ vars.NAS_HOST }}
       NAS_SSH_USER: ${{ vars.NAS_SSH_USER }}
@@ -31,7 +32,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$DEPLOY_SHA" =~ ^[a-f0-9]{40}$ ]]
           [[ "$DOCKERHUB_USERNAME" =~ ^[a-z0-9][a-z0-9_-]*$ ]]
           [[ "$NAS_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
           [[ "$NAS_SSH_USER" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$ ]]
@@ -102,21 +102,6 @@ jobs:
           override=$(mktemp "$PWD/.deploy-images.XXXXXX")
           trap 'rm -f "$override"' EXIT
           trap 'exit 1' HUP INT TERM
-          cat > "$override" <<IMAGES
-          services:
-            webshop.website:
-              image: docker.io/$2/webshop-webapp:sha-$3
-              environment:
-                ASPNETCORE_ENVIRONMENT: Production
-            webshop.webapi:
-              image: docker.io/$2/webshop-webapi:sha-$3
-              environment:
-                ASPNETCORE_ENVIRONMENT: Production
-            webshop.duende:
-              image: docker.io/$2/webshop-duende:sha-$3
-              environment:
-                ASPNETCORE_ENVIRONMENT: Production
-          IMAGES
 
           # Keep the project name stable so existing database volumes are reused.
           # Pull all application images before touching any running containers.
