@@ -127,7 +127,7 @@ jobs:
             pull webshop.website webshop.webapi webshop.duende
 
           # Record the selected release only after every image was downloaded.
-          # Keep this override for subsequent manual Compose operations.
+          # Keep this override for subsequent manual Compose operations
           mv "$override" compose.release.yml
           compose --project-name "$4" --env-file .env.docker \
             -f docker-compose.yml -f compose.release.yml \
