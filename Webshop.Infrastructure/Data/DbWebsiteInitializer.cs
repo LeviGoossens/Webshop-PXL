@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Webshop.Application.Repositories;
 using Webshop.Domain.Entities;
@@ -8,13 +9,14 @@ namespace Webshop.Infrastructure.Data;
 public static class DbWebsiteInitializer
 {
     /// <summary>
-    /// seed-data for proper function of the app
+    /// required seed-data for proper function of the app
     /// </summary>
-    /// <param name="serviceProvider">used to access registered services</param>
-    public static async Task InitAsync(IServiceProvider serviceProvider)
+    /// <param name="serviceProvider">access to registered services</param>
+    /// <param name="configuration">access to configured settings</param>
+    public static async Task InitAsync(IServiceProvider serviceProvider, IConfiguration configuration)
     {
-        await SeedRolesAsync(serviceProvider);
-        await SeedUsersAsync(serviceProvider);
+        await InitRolesAsync(serviceProvider);
+        await InitUsersAsync(serviceProvider, configuration);
 
         var categoryRepo = serviceProvider.GetRequiredService<ICategoryRepository>();
         // 1. Create 6 main camping categories
@@ -31,11 +33,9 @@ public static class DbWebsiteInitializer
     /// <summary>
     /// seed-data not needed for proper function, but used for testing, displaying, ...
     /// </summary>
-    /// <param name="serviceProvider">used to access registered services</param>
+    /// <param name="serviceProvider">access to registered services</param>
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
-        await SeedRolesAsync(serviceProvider);
-
         var productRepo = serviceProvider.GetRequiredService<IProductRepository>();
 
         var existingProducts = await productRepo.GetAll();
@@ -51,10 +51,10 @@ public static class DbWebsiteInitializer
     }
 
     /// <summary>
-    /// if roles do not exist we add them here
+    /// seed standard roles
     /// </summary>
-    /// <param name="serviceProvider"></param>
-    private static async Task SeedRolesAsync(IServiceProvider serviceProvider)
+    /// <param name="serviceProvider">access to registered services</param>
+    private static async Task InitRolesAsync(IServiceProvider serviceProvider)
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         foreach (var role in SeedData.Roles)
@@ -65,12 +65,13 @@ public static class DbWebsiteInitializer
             }
         }
     }
-
+    
     /// <summary>
-    /// add initial users
+    /// seed standard users
     /// </summary>
-    /// <param name="serviceProvider"></param>
-    private static async Task SeedUsersAsync(IServiceProvider serviceProvider)
+    /// <param name="serviceProvider">access to registered services</param>
+    /// <param name="configuration">access to configured settings</param>
+    private static async Task InitUsersAsync(IServiceProvider serviceProvider, IConfiguration configuration)
     {
         var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
 
@@ -79,8 +80,7 @@ public static class DbWebsiteInitializer
             return;
         }
 
-        string adminPassword = "AdminPassword123!";
-        var result = await userManager.CreateAsync(SeedData.AdminUser, adminPassword);
+        var result = await userManager.CreateAsync(SeedData.AdminUser, configuration.GetValue<string>("Superadmin_Password")!);
         if (result.Succeeded)
         {
             var createdUser = await userManager.FindByEmailAsync(SeedData.AdminUser.Email!);
