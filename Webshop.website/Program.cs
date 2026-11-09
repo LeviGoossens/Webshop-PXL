@@ -64,9 +64,9 @@ builder.Services.AddProjectAuthentication(builder.Configuration);
 builder.Services.AddHttpClient("StockApi", client =>
 {
     // In Docker: http://webshop.webapi:8080, locally: http://localhost:8078
-    var stockApiUrl = builder.Configuration["StockApiHost"]!;
+    var stockApiUrl = builder.Configuration.GetValue<string>("StockApiHost")!;
     client.BaseAddress = new Uri(stockApiUrl);
-    client.DefaultRequestHeaders.Add("X-Api-Key", builder.Configuration["WebApi:Apikey"]);
+    client.DefaultRequestHeaders.Add("X-Api-Key", builder.Configuration.GetValue<string>("WebApi:Apikey"));
 });
 
 if (!string.IsNullOrWhiteSpace(builder.Configuration.GetValue<string>("ProxyIP")))

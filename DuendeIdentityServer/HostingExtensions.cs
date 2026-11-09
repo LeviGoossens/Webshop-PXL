@@ -27,7 +27,7 @@ namespace DuendeIdentityServer
                 {
                     // https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/api_scopes#authorization-based-on-scopes
                     options.EmitStaticAudienceClaim = true;
-                    options.IssuerUri = builder.Configuration["Auth:Duende:Authority"];
+                    options.IssuerUri = builder.Configuration.GetValue<string>("Auth:Duende:Authority");
                 })
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
@@ -58,7 +58,7 @@ namespace DuendeIdentityServer
                         ForwardedHeaders.XForwardedProto;
 
                     options.KnownProxies.Add(
-                        System.Net.IPAddress.Parse(builder.Configuration["ProxyIP"]!));
+                        System.Net.IPAddress.Parse(builder.Configuration.GetValue<string>("ProxyIP")!));
                 });
             }
 
