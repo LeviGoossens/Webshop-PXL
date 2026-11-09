@@ -1,12 +1,9 @@
 name: deploy
 
 on:
-  workflow_dispatch: 
-    
-  workflow_run:
-    workflows: [build]
-    types: [completed]
-    branches: [4-cd-build-docker-image]
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
