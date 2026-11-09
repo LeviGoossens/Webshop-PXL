@@ -18,16 +18,16 @@ public static class AuthenticationExtensions
             .AddCookie("Cookies")
             .AddGoogle("google", options =>
             {
-                options.ClientId = googleAuth["ClientId"]!;
-                options.ClientSecret = googleAuth["ClientSecret"]!;
+                options.ClientId = googleAuth.GetValue<string>("ClientId")!;
+                options.ClientSecret = googleAuth.GetValue<string>("ClientSecret")!;
             })
             .AddOpenIdConnect("oidc", options =>
             {
                 options.SignInScheme = "Identity.Application";
-                options.Authority = duendeAuth["Authority"]!;
+                options.Authority = duendeAuth.GetValue<string>("Authority")!;
 
-                options.ClientId = duendeAuth["ClientId"]!;
-                options.ClientSecret = duendeAuth["ClientSecret"]!;
+                options.ClientId = duendeAuth.GetValue<string>("ClientId")!;
+                options.ClientSecret = duendeAuth.GetValue<string>("ClientSecret")!;
                 options.ResponseType = "code";
                 options.SaveTokens = false;
 
@@ -42,7 +42,7 @@ public static class AuthenticationExtensions
 
                 // Discovery, keys, tokens and user info use the internal Authority.
                 // Only browser redirects need the publicly reachable Duende URL.
-                var publicAuthority = duendeAuth["PublicAuthority"]?.TrimEnd('/');
+                var publicAuthority = duendeAuth.GetValue<string>("PublicAuthority")?.TrimEnd('/');
                 if (!string.IsNullOrWhiteSpace(publicAuthority))
                 {
                     options.Events.OnRedirectToIdentityProvider = context =>

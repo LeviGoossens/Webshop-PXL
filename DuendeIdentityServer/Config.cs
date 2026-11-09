@@ -21,21 +21,23 @@ namespace DuendeIdentityServer
                 { };
 
         public static IEnumerable<Client> GetClients(ConfigurationManager configuration) {
+            var duendeSection = configuration.GetSection("Auth:Duende");
+            string websiteHost = configuration.GetValue<string>("WebsiteHost")!;
             return new Client[]
                 { 
                     new Client
                     {
-                        ClientId = configuration["Auth:Duende:ClientId"]!,
-                        ClientSecrets = { new Secret(configuration["Auth:Duende:ClientSecret"]!.Sha256()) },
+                        ClientId = duendeSection.GetValue<string>("ClientId")!,
+                        ClientSecrets = { new Secret(duendeSection.GetValue<string>("ClientSecret")!.Sha256()) },
                         AllowedGrantTypes = GrantTypes.Code,
                     
                         // require Proof Key for Code Exchange (PKCE) for maximum security standard
                         RequirePkce = true,
                         // allow the application to request refresh tokens to keep users logged in
                         AllowOfflineAccess = true,
-
-                        RedirectUris = { $"{configuration["WebsiteHost"]}/signin-oidc" },
-                        PostLogoutRedirectUris = { $"{configuration["WebsiteHost"]}/signout-callback-oidc" },
+                        
+                        RedirectUris = { $"{websiteHost}/signin-oidc" },
+                        PostLogoutRedirectUris = { $"{websiteHost}/signout-callback-oidc" },
 
                         AllowedScopes = { "openid", "profile", "email", "roles" },
                         AlwaysIncludeUserClaimsInIdToken = true
