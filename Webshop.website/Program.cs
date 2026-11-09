@@ -69,15 +69,18 @@ builder.Services.AddHttpClient("StockApi", client =>
     client.DefaultRequestHeaders.Add("X-Api-Key", builder.Configuration["WebApi:Apikey"]);
 });
 
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
+if (!string.IsNullOrWhiteSpace(builder.Configuration.GetValue<string>("ProxyIP")))
 {
-    options.ForwardedHeaders =
-        ForwardedHeaders.XForwardedFor |
-        ForwardedHeaders.XForwardedProto;
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders =
+            ForwardedHeaders.XForwardedFor |
+            ForwardedHeaders.XForwardedProto;
 
-    options.KnownProxies.Add(
-        System.Net.IPAddress.Parse(builder.Configuration["ProxyIP"]!));
-});
+        options.KnownProxies.Add(
+            System.Net.IPAddress.Parse(builder.Configuration.GetValue<string>("ProxyIP")!));
+    });
+}
 
 var app = builder.Build();
 
@@ -98,8 +101,8 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     context.Database.Migrate(); // always apply migrations during startup (could cause problems)
     // more info here: https://codebuckets.com/2020/08/14/applying-entity-framework-migrations-to-a-docker-container/
-
-    await DbWebsiteInitializer.InitAsync(scope.ServiceProvider);
+    
+    await DbWebsiteInitializer.InitAsync(scope.ServiceProvider, app.Configuration);
     await DbWebsiteInitializer.SeedAsync(scope.ServiceProvider);
 }
 // ==========================================================

@@ -49,16 +49,18 @@ namespace DuendeIdentityServer
                     ? CookieSecurePolicy.SameAsRequest
                     : CookieSecurePolicy.Always;
             });
-            
-            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            if (!string.IsNullOrWhiteSpace(builder.Configuration.GetValue<string>("ProxyIP")))
             {
-                options.ForwardedHeaders =
-                    ForwardedHeaders.XForwardedFor |
-                    ForwardedHeaders.XForwardedProto;
+                builder.Services.Configure<ForwardedHeadersOptions>(options =>
+                {
+                    options.ForwardedHeaders =
+                        ForwardedHeaders.XForwardedFor |
+                        ForwardedHeaders.XForwardedProto;
 
-                options.KnownProxies.Add(
-                    System.Net.IPAddress.Parse(builder.Configuration["ProxyIP"]!));
-            });
+                    options.KnownProxies.Add(
+                        System.Net.IPAddress.Parse(builder.Configuration["ProxyIP"]!));
+                });
+            }
 
             builder.Services.AddScoped<IIdentityService, IdentityService>();
 
